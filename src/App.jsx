@@ -9,7 +9,7 @@ function App() {
     <>
       <SnakerProvider>
         <Container
-          maxWidth="sm"
+          maxWidth="xs"
           sx={{
             direction: "rtl",
             background: "white",
