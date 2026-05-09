@@ -3,23 +3,21 @@ import Button from "@mui/material/Button";
 import { TodoContext } from "./context/TodoContext";
 import { useContext, useState } from "react";
 import { SnackbarContext } from "./context/SnackbarContext";
+import TodosReducer from "./reducer/TodosReducer";
 import "./todo.css";
 
 export default function AddTodo() {
   const { showSnscker } = useContext(SnackbarContext);
   const [valueInput, setValueInput] = useState("");
-  const { items, setItems } = useContext(TodoContext);
+  const { dispatch } = useContext(TodoContext);
 
   const handleAdd = () => {
-    if (valueInput.trim() === "") return;
-
-    const list = {
-      id: Date.now(),
-      name: valueInput,
-      isdone: false,
-    };
-    const updatedTodos = [...items, list];
-    setItems(updatedTodos);
+    dispatch({
+      type: "added",
+      payload: {
+        valueInpu: valueInput,
+      },
+    });
 
     setValueInput("");
     showSnscker("تم الاضافه نجاح");

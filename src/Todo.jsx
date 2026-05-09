@@ -1,7 +1,7 @@
 import "./todo.css";
 import * as React from "react";
 import { TodoContext } from "./context/TodoContext";
-import { useContext, useEffect, useMemo } from "react";
+import { useContext, useMemo } from "react";
 import ButtonGroup from "@mui/material/ButtonGroup";
 import { SnackbarContext } from "./context/SnackbarContext";
 
@@ -18,7 +18,7 @@ import {
 export default function Todo() {
   const { showSnscker } = useContext(SnackbarContext);
   const STORAGE_KEY = "todos";
-  const { items, setItems } = useContext(TodoContext);
+  const { items, dispatch } = useContext(TodoContext);
 
   // 🗑️ Delete Dialog
   const [deleteOpen, setDeleteOpen] = React.useState(false);
@@ -33,36 +33,15 @@ export default function Todo() {
   const [title, setTitle] = React.useState("");
   const [details, setDetails] = React.useState("");
 
-  // 📥 قراءة مرة واحدة
-  // 📥 القراءة والتحميل عند أول رندر فقط
-  useEffect(() => {
-    const data = localStorage.getItem(STORAGE_KEY);
-    if (data) {
-      try {
-        const parsedData = JSON.parse(data);
-        // نتأكد أن البيانات ليست فارغة قبل التحديث
-        if (parsedData && parsedData.length > 0) {
-          setItems(parsedData);
-        }
-      } catch (e) {
-        console.error("Error parsing localStorage data", e);
-      }
-    }
-  }, []); // تشغيل مرة واحدة فقط عند البداية
-
-  // 💾 الحفظ التلقائي: يتم فقط عندما تتغير items وتكون تحتوي على بيانات أو تم تعديلها فعلياً
-  useEffect(() => {
-    // هذا الشرط يمنع مسح التخزين إذا كانت المصفوفة فارغة تماماً عند التحميل الأول
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-  }, [items]);
-
   // ✅ Done toggle
   const handleClickCheck = (id) => {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, isdone: !item.isdone } : item,
-      ),
-    );
+    dispatch({
+      type: "toggle",
+      payload: {
+        id: id,
+      },
+    });
+
     showSnscker("تم التعديل نجاح ");
   };
 
@@ -77,7 +56,13 @@ export default function Todo() {
   }
 
   const handleConfirmDelete = () => {
-    setItems(items.filter((item) => item.id !== deleteId));
+    dispatch({
+      type: "deleted",
+      payload: {
+        id: deleteId,
+      },
+    });
+
     setDeleteOpen(false);
     showSnscker("تم الحذف جاح ");
   };
@@ -92,13 +77,15 @@ export default function Todo() {
 
   // 💾 حفظ التعديل
   const handleSaveEdit = () => {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === currentItem.id
-          ? { ...item, name: title, details: details }
-          : item,
-      ),
-    );
+    dispatch({
+      type: "edited",
+      payload: {
+        id: currentItem.id,
+        title: title,
+        details: details,
+      },
+    });
+
     setEditOpen(false);
     showSnscker("تم التحديث نجاح");
   };
